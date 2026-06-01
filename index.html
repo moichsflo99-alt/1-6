@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng 1/6 🎈</title>
+    <!-- Sử dụng Tailwind CSS để làm đẹp giao diện -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Sử dụng font chữ Baloo 2 bo tròn, dễ thương -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Baloo 2', cursive;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            overflow-x: hidden;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden-step {
+            display: none !important;
+        }
+
+        .scanner-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            max-height: 300px;
+            width: 100%;
+            background: #f3f4f6;
+            margin-bottom: 1.5rem;
+        }
+        .scanner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.2) brightness(0.9);
+        }
+        .laser {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #10b981;
+            box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.6);
+            animation: scan 1.5s ease-in-out infinite;
+        }
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Nút radio tùy chỉnh */
+        input[type="radio"]:checked + label {
+            background-color: #fce7f3;
+            border-color: #ec4899;
+            color: #db2777;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative">
+
+    <!-- Canvas để vẽ hiệu ứng pháo giấy (Confetti) -->
+    <canvas id="confetti"></canvas>
+
+    <div id="step-upload" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 transition-all duration-300">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 mb-2">
+                Máy Quét Tuổi Thơ 📸
+            </h1>
+            <p class="text-gray-600 font-medium">Hãy tải một bức ảnh của bạn lên để AI đoán xem "tâm hồn" bạn bao nhiêu tuổi nhé!</p>
+        </div>
+        
+        <div class="flex items-center justify-center w-full">
+            <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-pink-300 border-dashed rounded-2xl cursor-pointer bg-pink-50/50 hover:bg-pink-100/50 transition-all">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-12 h-12 mb-4 text-pink-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                    </svg>
+                    <p class="mb-2 text-sm text-gray-500 font-semibold">Nhấn để tải ảnh lên</p>
+                    <p class="text-xs text-gray-400">PNG, JPG hoặc JPEG</p>
+                </div>
+                <input id="dropzone-file" type="file" class="hidden" accept="image/*" onchange="handleImageUpload(event)" />
+            </label>
+        </div>
+    </div>
+
+    <div id="step-scanning" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 hidden-step flex-col items-center">
+        <h2 class="text-2xl font-bold text-center text-blue-600 mb-4 animate-pulse">🤖 Đang phân tích dữ liệu...</h2>
+        <div class="scanner-container h-64 border-4 border-blue-200">
+            <img id="preview-image" src="" alt="Preview" class="scanner-img">
+            <div class="laser"></div>
+        </div>
+        <p class="text-center text-gray-500 mt-4 font-medium">Đang đếm số nếp nhăn... à nhầm, đếm sự cute!</p>
+    </div>
+
+    <div id="step-result" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 hidden-step text-center">
+        <div class="text-5xl mb-4">🎯</div>
+        <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-blue-500 mb-4">
+            Bíp Bíp! Kết Quả
+        </h2>
+        <div class="bg-gray-50 rounded-2xl p-4 mb-6 border-2 border-gray-100 shadow-inner">
+            <p class="text-lg text-gray-600 font-medium mb-2">Hệ thống AI nhận diện được:</p>
+            <p class="text-2xl font-bold text-gray-800">Giới tính: <span id="ai-gender" class="text-pink-500"></span></p>
+            <p class="text-2xl font-bold text-gray-800">Tuổi: <span id="ai-age" class="text-blue-500"></span></p>
+        </div>
+        <p class="text-gray-600 font-medium mb-6">AI đoán chuẩn không nào? 😎</p>
+        
+        <div class="space-y-3">
+            <button onclick="acceptAIGuess()" class="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-bold text-xl py-3 rounded-2xl shadow-md transform transition hover:scale-[1.02] active:scale-95">
+                Chuẩn luôn! Nhận quà 🎁
+            </button>
+            <button onclick="rejectAIGuess()" class="w-full bg-white text-red-500 border-2 border-red-200 hover:bg-red-50 font-bold text-lg py-3 rounded-2xl transition-all">
+                AI đoán sai rồi! Sửa lại ❌
+            </button>
+        </div>
+    </div>
+
+    <div id="step-manual" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 hidden-step transition-all duration-300">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 mb-2">
+                Sửa Lại Thông Tin ✏️
+            </h1>
+            <p class="text-gray-600 font-medium">Bọn AI ngốc nghếch quá, bạn tự nhập thông tin chuẩn vào đây nhé!</p>
+        </div>
+
+        <div class="space-y-5">
+            <!-- Nhập Tuổi -->
+            <div>
+                <label for="age" class="block text-lg font-semibold text-gray-700 mb-2">Bạn năm nay bao nhiêu tuổi?</label>
+                <input type="number" id="age" placeholder="VD: 16, 18..." min="1" max="100" 
+                       class="w-full px-4 py-3 rounded-2xl border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none transition-all text-lg font-medium text-gray-700">
+                <p id="age-error" class="text-red-500 text-sm mt-1 hidden">Vui lòng nhập số tuổi hợp lệ nha!</p>
+            </div>
+
+            <!-- Chọn Giới Tính -->
+            <div>
+                <label class="block text-lg font-semibold text-gray-700 mb-2">Giới tính của bạn là gì?</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative">
+                        <input type="radio" name="gender" id="male" value="male" class="peer hidden" checked>
+                        <label for="male" class="block text-center cursor-pointer px-4 py-3 border-2 border-gray-200 rounded-2xl font-semibold text-gray-600 transition-all hover:bg-gray-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600">
+                            👦 Nam
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" name="gender" id="female" value="female" class="peer hidden">
+                        <label for="female" class="block text-center cursor-pointer px-4 py-3 border-2 border-gray-200 rounded-2xl font-semibold text-gray-600 transition-all hover:bg-gray-50 peer-checked:bg-pink-50 peer-checked:border-pink-500 peer-checked:text-pink-600">
+                            👧 Nữ
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút Xác Nhận -->
+            <button onclick="generateWishFromForm()" class="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-bold text-xl py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 mt-4">
+                Nhận Lời Chúc Ngay! ✨
+            </button>
+        </div>
+    </div>
+
+    <div id="step-wish" class="glass-card rounded-3xl p-8 max-w-lg w-full relative z-10 hidden-step flex-col items-center text-center">
+        <div class="text-5xl mb-4 animate-bounce">🎈🧸🎉</div>
+        <h2 id="greeting-title" class="text-3xl font-extrabold text-pink-600 mb-6">
+            Chúc mừng 1/6!
+        </h2>
+        
+        <div class="bg-white/60 p-6 rounded-2xl shadow-inner border border-white mb-8">
+            <p id="greeting-content" class="text-xl text-gray-800 leading-relaxed font-medium whitespace-pre-line">
+                <!-- Nội dung lời chúc sẽ được render ở đây -->
+            </p>
+        </div>
+
+        <button onclick="resetApp()" class="px-8 py-3 bg-white text-pink-500 font-bold text-lg rounded-2xl shadow-md border-2 border-pink-100 hover:bg-pink-50 hover:border-pink-300 transition-all">
+            🔙 Quét lại ảnh khác
+        </button>
+    </div>
+
+    <script>
+        // Lưu trữ kết quả AI đoán
+        let guessedAge = 0;
+        let guessedGender = '';
+
+        // Xử lý khi chọn ảnh
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-image').src = e.target.result;
+                    
+                    // Chuyển sang màn hình quét
+                    document.getElementById('step-upload').classList.add('hidden-step');
+                    document.getElementById('step-scanning').classList.remove('hidden-step');
+                    
+                    // Giả lập thời gian AI phân tích (3 giây)
+                    setTimeout(() => {
+                        finishScanning();
+                    }, 3000);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Kết thúc quét và đưa ra kết quả ngẫu nhiên
+        function finishScanning() {
+            // Random tuổi từ 12 đến 22 để "tấu hài"
+            guessedAge = Math.floor(Math.random() * 11) + 12; 
+            // Random giới tính
+            guessedGender = Math.random() > 0.5 ? 'male' : 'female';
+            
+            document.getElementById('ai-age').innerText = guessedAge;
+            document.getElementById('ai-gender').innerText = guessedGender === 'male' ? 'Nam 👦' : 'Nữ 👧';
+
+            document.getElementById('step-scanning').classList.add('hidden-step');
+            document.getElementById('step-result').classList.remove('hidden-step');
+            document.getElementById('step-result').classList.add('fade-in');
+        }
+
+        // Nếu người dùng ấn "Chuẩn luôn"
+        function acceptAIGuess() {
+            processAndShowWish(guessedAge, guessedGender);
+            document.getElementById('step-result').classList.add('hidden-step');
+        }
+
+        // Nếu người dùng ấn "AI sai rồi" -> Chuyển sang form nhập tay
+        function rejectAIGuess() {
+            document.getElementById('step-result').classList.add('hidden-step');
+            document.getElementById('step-manual').classList.remove('hidden-step');
+            document.getElementById('step-manual').classList.add('fade-in');
+            
+            // Điền sẵn dữ liệu AI đã đoán vào form để người dùng dễ sửa
+            document.getElementById('age').value = guessedAge;
+            if (guessedGender === 'male') {
+                document.getElementById('male').checked = true;
+            } else {
+                document.getElementById('female').checked = true;
+            }
+        }
+
+        // Tạo lời chúc từ form nhập tay
+        function generateWishFromForm() {
+            const ageInput = document.getElementById('age').value;
+            const ageError = document.getElementById('age-error');
+            
+            if (!ageInput || ageInput <= 0) {
+                ageError.classList.remove('hidden');
+                return;
+            }
+            ageError.classList.add('hidden');
+
+            const finalAge = parseInt(ageInput);
+            const finalGender = document.querySelector('input[name="gender"]:checked').value;
+            
+            document.getElementById('step-manual').classList.add('hidden-step');
+            processAndShowWish(finalAge, finalGender);
+        }
+
+        // Hàm xử lý logic xưng hô và hiển thị kết quả (Dùng chung cho cả 2 nhánh)
+        function processAndShowWish(age, gender) {
+            let receiver = ''; 
+            let sender = '';   
+            let baseWish = '';
+
+            // LOGIC XƯNG HÔ VÀ LỜI KHEN
+            if (age > 16) {
+                receiver = (gender === 'male') ? 'anh' : 'chị';
+                sender = 'em';
+                const compliments = (gender === 'male') 
+                    ? ['đẹp trai, phong độ', 'đẹp trai, ngời ngời', 'đẹp trai, ga lăng'] 
+                    : ['xinh gái, rạng rỡ', 'xinh gái, duyên dáng', 'xinh xắn, đáng yêu'];
+                const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+
+                baseWish = `Chúc ${receiver} ngày Quốc tế Thiếu nhi 1/6 thật vui vẻ và hạnh phúc nhé! Chúc ${receiver} ngày càng ${randomCompliment} và gặt hái nhiều thành công. Dù lớn rồi nhưng tâm hồn vẫn phải luôn tươi trẻ như em bé nha. 1/6 không ai tặng quà thì có ${sender} tặng quà tinh thần nè! 🎁💖`;
+            } 
+            else if (age === 16) {
+                receiver = 'bạn';
+                sender = 'mình';
+                const compliments = (gender === 'male') 
+                    ? ['đẹp trai, cool ngầu', 'khôi ngô, tài giỏi', 'phong độ, cuốn hút'] 
+                    : ['xinh gái, kute', 'xinh gái, tỏa sáng', 'dễ thương, hiền lành'];
+                const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+
+                baseWish = `Chúc ${receiver} mùng 1/6 tràn ngập niềm vui, lúc nào cũng vui vẻ và yêu đời nhé! Chúc ${receiver} luôn ${randomCompliment} nha. Chúc tình bạn của chúng ta luôn bền chặt và vui vẻ như những đứa trẻ! 🧸✨`;
+            } 
+            else { 
+                receiver = 'em';
+                sender = 'anh/chị'; 
+                const compliments = (gender === 'male') 
+                    ? ['đẹp trai, lanh lợi', 'đẹp trai, ga lăng', 'ngoan ngoãn, đáng yêu'] 
+                    : ['xinh xắn, đáng yêu', 'xinh xắn, như thiên thần', 'dễ thương, lém lỉnh'];
+                const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+
+                baseWish = `Chúc ${receiver} cưng ngày Quốc tế Thiếu nhi thật nhiều niềm vui! Chúc ${receiver} ăn no chóng lớn, ngoan ngoãn, học thật giỏi và ngày càng ${randomCompliment} nhé! Nhanh đi đòi bố mẹ thật nhiều quà nha! 🎉🎈`;
+            }
+
+            if (age === 18) {
+                baseWish += `\n\n🎓 Đặc biệt năm nay ${receiver} đã 18 tuổi rồi! ${sender.charAt(0).toUpperCase() + sender.slice(1)} chúc ${receiver} ôn thi thật tốt, giữ tinh thần thoải mái, tự tin chiến thắng và đạt điểm cao chót vót trong kỳ thi Tốt nghiệp THPT Quốc gia sắp tới nhé! Cánh cửa Đại học đang vẫy gọi, cố lênnn!!! 🌟📚💪`;
+            }
+
+            document.getElementById('greeting-title').innerText = `Gửi tặng ${receiver} yêu quý!`;
+            document.getElementById('greeting-content').innerText = baseWish;
+
+            const stepWish = document.getElementById('step-wish');
+            stepWish.classList.remove('hidden-step');
+            stepWish.classList.add('fade-in');
+
+            startConfetti();
+        }
+
+        function resetApp() {
+            document.getElementById('step-wish').classList.add('hidden-step');
+            document.getElementById('step-wish').classList.remove('fade-in');
+            
+            // Quay về màn hình upload ban đầu
+            document.getElementById('step-upload').classList.remove('hidden-step');
+            document.getElementById('dropzone-file').value = ''; 
+            
+            stopConfetti();
+        }
+
+        let confettiPlayers = [];
+        let canvas = document.getElementById('confetti');
+        let ctx = canvas.getContext('2d');
+        let animationId;
+
+        function startConfetti() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            confettiPlayers = [];
+            for (let i = 0; i < 150; i++) {
+                confettiPlayers.push(createConfetti());
+            }
+            renderConfetti();
+        }
+
+        function stopConfetti() {
+            cancelAnimationFrame(animationId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function createConfetti() {
+            const colors = ['#ff718d', '#fdff6a', '#71b7ff', '#6cff9e', '#b871ff'];
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 10 + 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: Math.random() * 3 + 2,
+                angle: Math.random() * 360,
+                spin: Math.random() * 0.2 - 0.1,
+                fallRate: Math.random() * 0.1 + 0.05
+            };
+        }
+
+        function renderConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confettiPlayers.forEach(p => {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+
+                p.y += p.speed;
+                p.x += Math.sin(p.angle) * 2;
+                p.angle += p.spin;
+
+                // Reset hạt pháo khi rơi khỏi màn hình
+                if (p.y > canvas.height) {
+                    p.y = -20;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+            animationId = requestAnimationFrame(renderConfetti);
+        }
+
+        // Cập nhật kích thước canvas khi resize cửa sổ
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
