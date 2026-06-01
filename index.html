@@ -3,414 +3,593 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chúc Mừng 1/6 🎈</title>
-    <!-- Sử dụng Tailwind CSS để làm đẹp giao diện -->
+    <title>Chiến Thần THPT QG - Ôn thi hiệu quả</title>
+    <!-- Tailwind CSS for rapid styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Sử dụng font chữ Baloo 2 bo tròn, dễ thương -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         body {
-            font-family: 'Baloo 2', cursive;
-            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 100vh;
         }
         
-        .glass-card {
+        .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out forwards;
+        .countdown-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(118, 75, 162, 0.4);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Custom Scrollbar for planner */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
-        .hidden-step {
-            display: none !important;
+        /* Pulse animation for running timer */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .timer-running {
+            animation: pulse-ring 2s infinite;
+            border-color: #3b82f6 !important;
+            color: #3b82f6 !important;
         }
 
-        .scanner-container {
-            position: relative;
-            overflow: hidden;
-            border-radius: 1rem;
-            max-height: 300px;
-            width: 100%;
-            background: #f3f4f6;
-            margin-bottom: 1.5rem;
-        }
-        .scanner-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: contrast(1.2) brightness(0.9);
-        }
-        .laser {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background-color: #10b981;
-            box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.6);
-            animation: scan 1.5s ease-in-out infinite;
-        }
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        /* Checkbox animation */
+        .task-checkbox:checked + div {
+            text-decoration: line-through;
+            color: #94a3b8;
         }
 
-        canvas {
+        /* Toast Notification */
+        #toast-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
+            bottom: 20px;
+            right: 20px;
             z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-
-        /* Nút radio tùy chỉnh */
-        input[type="radio"]:checked + label {
-            background-color: #fce7f3;
-            border-color: #ec4899;
-            color: #db2777;
+        .toast {
+            background: white;
+            border-left: 4px solid #10b981;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 16px;
+            border-radius: 8px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast.show {
+            transform: translateX(0);
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 relative">
+<body class="text-gray-800 p-4 md:p-8">
 
-    <!-- Canvas để vẽ hiệu ứng pháo giấy (Confetti) -->
-    <canvas id="confetti"></canvas>
-
-    <div id="step-upload" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 transition-all duration-300">
-        <div class="text-center mb-6">
-            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 mb-2">
-                Máy Quét Tuổi Thơ 📸
-            </h1>
-            <p class="text-gray-600 font-medium">Hãy tải một bức ảnh của bạn lên để AI đoán xem "tâm hồn" bạn bao nhiêu tuổi nhé!</p>
-        </div>
+    <div class="max-w-6xl mx-auto">
         
-        <div class="flex items-center justify-center w-full">
-            <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-pink-300 border-dashed rounded-2xl cursor-pointer bg-pink-50/50 hover:bg-pink-100/50 transition-all">
-                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                    <svg class="w-12 h-12 mb-4 text-pink-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                    </svg>
-                    <p class="mb-2 text-sm text-gray-500 font-semibold">Nhấn để tải ảnh lên</p>
-                    <p class="text-xs text-gray-400">PNG, JPG hoặc JPEG</p>
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg">
+                    <i class="fa-solid fa-graduation-cap text-2xl"></i>
                 </div>
-                <input id="dropzone-file" type="file" class="hidden" accept="image/*" onchange="handleImageUpload(event)" />
-            </label>
-        </div>
-    </div>
-
-    <div id="step-scanning" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 hidden-step flex-col items-center">
-        <h2 class="text-2xl font-bold text-center text-blue-600 mb-4 animate-pulse">🤖 Đang phân tích dữ liệu...</h2>
-        <div class="scanner-container h-64 border-4 border-blue-200">
-            <img id="preview-image" src="" alt="Preview" class="scanner-img">
-            <div class="laser"></div>
-        </div>
-        <p class="text-center text-gray-500 mt-4 font-medium">Đang đếm số nếp nhăn... à nhầm, đếm sự cute!</p>
-    </div>
-
-    <div id="step-result" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 hidden-step text-center">
-        <div class="text-5xl mb-4">🎯</div>
-        <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-blue-500 mb-4">
-            Bíp Bíp! Kết Quả
-        </h2>
-        <div class="bg-gray-50 rounded-2xl p-4 mb-6 border-2 border-gray-100 shadow-inner">
-            <p class="text-lg text-gray-600 font-medium mb-2">Hệ thống AI nhận diện được:</p>
-            <p class="text-2xl font-bold text-gray-800">Giới tính: <span id="ai-gender" class="text-pink-500"></span></p>
-            <p class="text-2xl font-bold text-gray-800">Tuổi: <span id="ai-age" class="text-blue-500"></span></p>
-        </div>
-        <p class="text-gray-600 font-medium mb-6">AI đoán chuẩn không nào? 😎</p>
-        
-        <div class="space-y-3">
-            <button onclick="acceptAIGuess()" class="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-bold text-xl py-3 rounded-2xl shadow-md transform transition hover:scale-[1.02] active:scale-95">
-                Chuẩn luôn! Nhận quà 🎁
-            </button>
-            <button onclick="rejectAIGuess()" class="w-full bg-white text-red-500 border-2 border-red-200 hover:bg-red-50 font-bold text-lg py-3 rounded-2xl transition-all">
-                AI đoán sai rồi! Sửa lại ❌
-            </button>
-        </div>
-    </div>
-
-    <div id="step-manual" class="glass-card rounded-3xl p-8 max-w-md w-full relative z-10 hidden-step transition-all duration-300">
-        <div class="text-center mb-6">
-            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 mb-2">
-                Sửa Lại Thông Tin ✏️
-            </h1>
-            <p class="text-gray-600 font-medium">Bọn AI ngốc nghếch quá, bạn tự nhập thông tin chuẩn vào đây nhé!</p>
-        </div>
-
-        <div class="space-y-5">
-            <!-- Nhập Tuổi -->
-            <div>
-                <label for="age" class="block text-lg font-semibold text-gray-700 mb-2">Bạn năm nay bao nhiêu tuổi?</label>
-                <input type="number" id="age" placeholder="VD: 16, 18..." min="1" max="100" 
-                       class="w-full px-4 py-3 rounded-2xl border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none transition-all text-lg font-medium text-gray-700">
-                <p id="age-error" class="text-red-500 text-sm mt-1 hidden">Vui lòng nhập số tuổi hợp lệ nha!</p>
-            </div>
-
-            <!-- Chọn Giới Tính -->
-            <div>
-                <label class="block text-lg font-semibold text-gray-700 mb-2">Giới tính của bạn là gì?</label>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="relative">
-                        <input type="radio" name="gender" id="male" value="male" class="peer hidden" checked>
-                        <label for="male" class="block text-center cursor-pointer px-4 py-3 border-2 border-gray-200 rounded-2xl font-semibold text-gray-600 transition-all hover:bg-gray-50 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600">
-                            👦 Nam
-                        </label>
-                    </div>
-                    <div class="relative">
-                        <input type="radio" name="gender" id="female" value="female" class="peer hidden">
-                        <label for="female" class="block text-center cursor-pointer px-4 py-3 border-2 border-gray-200 rounded-2xl font-semibold text-gray-600 transition-all hover:bg-gray-50 peer-checked:bg-pink-50 peer-checked:border-pink-500 peer-checked:text-pink-600">
-                            👧 Nữ
-                        </label>
-                    </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                        Chiến Thần THPT QG
+                    </h1>
+                    <p class="text-sm text-gray-500 font-medium">Quyết tâm đỗ Nguyện Vọng 1! 🎯</p>
                 </div>
             </div>
+            
+            <!-- Quote of the day -->
+            <div class="glass-panel px-6 py-3 rounded-full text-sm font-medium text-indigo-700 italic border-indigo-100 flex items-center gap-2 max-w-md text-center md:text-left">
+                <i class="fa-solid fa-fire text-orange-500"></i>
+                <span id="daily-quote">"Thà đổ mồ hôi trên trang sách, còn hơn rơi nước mắt trên bài thi."</span>
+            </div>
+        </header>
 
-            <!-- Nút Xác Nhận -->
-            <button onclick="generateWishFromForm()" class="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-bold text-xl py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 mt-4">
-                Nhận Lời Chúc Ngay! ✨
-            </button>
+        <!-- NEW: Dream University Section -->
+        <section class="mb-8 glass-panel rounded-3xl p-6 text-center transform hover:scale-[1.01] transition-transform duration-300">
+            <h2 class="text-lg md:text-xl font-bold text-gray-600 mb-2">Mục tiêu đỗ Nguyện Vọng 1:</h2>
+            <div id="dream-uni-display" class="hidden flex-col items-center justify-center gap-2">
+                <h3 id="dream-uni-text" class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 uppercase tracking-wider drop-shadow-sm"></h3>
+                <button onclick="editDreamUni()" class="text-sm text-gray-500 hover:text-indigo-600 underline mt-1"><i class="fa-solid fa-pen text-xs"></i> Thay đổi mục tiêu</button>
+            </div>
+            <div id="dream-uni-form" class="flex flex-col sm:flex-row justify-center items-center gap-3 mt-4">
+                <input type="text" id="dream-uni-input" placeholder="VD: Bách Khoa, Ngoại Thương, Kinh Tế Quốc Dân..." 
+                       class="w-full max-w-md bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-center font-bold text-gray-700">
+                <button onclick="saveDreamUni()" class="w-full sm:w-auto bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors">
+                    <i class="fa-solid fa-thumbtack mr-2"></i> Ghim Mục Tiêu
+                </button>
+            </div>
+        </section>
+
+        <!-- Countdown Section -->
+        <section class="glass-panel rounded-3xl p-6 md:p-10 mb-8 text-center relative overflow-hidden">
+            <!-- Decorative background elements -->
+            <div class="absolute top-[-50%] left-[-10%] w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+            <div class="absolute bottom-[-50%] right-[-10%] w-64 h-64 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+            
+            <h2 class="text-xl font-bold mb-6 text-gray-700 relative z-10 flex flex-col md:flex-row justify-center items-center gap-2">
+                Đếm ngược đến giờ G
+                <button onclick="editExamDate()" class="text-xs bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-full hover:bg-indigo-200 transition-colors shadow-sm font-medium">
+                    <i class="fa-solid fa-pen mr-1"></i> Đổi ngày
+                </button>
+            </h2>
+            <div class="flex justify-center gap-3 md:gap-6 relative z-10">
+                <div class="countdown-box flex flex-col items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-2xl">
+                    <span id="days" class="text-3xl md:text-5xl font-black">00</span>
+                    <span class="text-xs md:text-sm font-medium mt-1 opacity-90">Ngày</span>
+                </div>
+                <div class="countdown-box flex flex-col items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-2xl">
+                    <span id="hours" class="text-3xl md:text-5xl font-black">00</span>
+                    <span class="text-xs md:text-sm font-medium mt-1 opacity-90">Giờ</span>
+                </div>
+                <div class="countdown-box flex flex-col items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-2xl">
+                    <span id="minutes" class="text-3xl md:text-5xl font-black">00</span>
+                    <span class="text-xs md:text-sm font-medium mt-1 opacity-90">Phút</span>
+                </div>
+                <div class="countdown-box flex flex-col items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500">
+                    <span id="seconds" class="text-3xl md:text-5xl font-black">00</span>
+                    <span class="text-xs md:text-sm font-medium mt-1 opacity-90">Giây</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Pomodoro Timer -->
+            <section class="glass-panel rounded-3xl p-6 md:p-8 flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-indigo-500"></i> Pomodoro Focus
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="setPomodoroMode('work')" class="mode-btn active px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-700 transition-colors" id="btn-work">Học (25')</button>
+                        <button onclick="setPomodoroMode('break')" class="mode-btn px-3 py-1 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-colors" id="btn-break">Nghỉ (5')</button>
+                    </div>
+                </div>
+
+                <div id="timer-display-container" class="w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-gray-100 flex items-center justify-center mb-8 transition-all duration-300">
+                    <span id="time-display" class="text-5xl md:text-7xl font-black text-gray-700 tracking-tighter">25:00</span>
+                </div>
+
+                <div class="flex gap-4 w-full justify-center">
+                    <button id="start-btn" onclick="toggleTimer()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 active:translate-y-0">
+                        <i class="fa-solid fa-play mr-2"></i> Bắt đầu
+                    </button>
+                    <button onclick="resetTimer()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl transition-colors">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 mt-4 text-center">Tắt điện thoại, tập trung 100% vào trang sách. Bạn làm được!</p>
+            </section>
+
+            <!-- Study Planner -->
+            <section class="glass-panel rounded-3xl p-6 md:p-8 flex flex-col h-[500px]">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-green-500"></i> Kế hoạch hôm nay
+                </h2>
+                
+                <form id="task-form" class="flex gap-2 mb-6">
+                    <input type="text" id="task-input" placeholder="VD: Giải 1 đề Toán, Học từ vựng Tiếng Anh..." 
+                           class="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm" required>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-5 rounded-xl shadow-md transition-colors">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </form>
+
+                <div class="flex-1 overflow-y-auto custom-scroll pr-2">
+                    <ul id="task-list" class="space-y-3">
+                        <!-- Tasks will be injected here via JavaScript -->
+                    </ul>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                    <span id="task-stats" class="text-sm font-medium text-gray-500">Hoàn thành: 0/0</span>
+                    <button onclick="clearCompletedTasks()" class="text-sm text-red-500 hover:text-red-700 font-medium transition-colors">Xóa mục đã xong</button>
+                </div>
+            </section>
         </div>
+
+        <!-- NEW: Motivational Boost Section -->
+        <section class="mt-8 mb-12 flex justify-center">
+            <button onclick="showMotivationModal()" class="group relative px-8 py-4 bg-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <span class="relative flex items-center gap-3 text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-indigo-600">
+                    <i class="fa-solid fa-gift text-pink-500 text-xl animate-pulse"></i>
+                    Nhận Lời Chúc Tiếp Sức Mùa Thi
+                </span>
+            </button>
+        </section>
     </div>
 
-    <div id="step-wish" class="glass-card rounded-3xl p-8 max-w-lg w-full relative z-10 hidden-step flex-col items-center text-center">
-        <div class="text-5xl mb-4 animate-bounce">🎈🧸🎉</div>
-        <h2 id="greeting-title" class="text-3xl font-extrabold text-pink-600 mb-6">
-            Chúc mừng 1/6!
-        </h2>
-        
-        <div class="bg-white/60 p-6 rounded-2xl shadow-inner border border-white mb-8">
-            <p id="greeting-content" class="text-xl text-gray-800 leading-relaxed font-medium whitespace-pre-line">
-                <!-- Nội dung lời chúc sẽ được render ở đây -->
+    <!-- Motivation Modal -->
+    <div id="motivation-modal" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-[90%] text-center shadow-2xl transform scale-95 transition-transform duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner relative">
+                <div class="absolute inset-0 rounded-full border-4 border-yellow-200 animate-ping opacity-20"></div>
+                <i class="fa-solid fa-star text-4xl text-yellow-500"></i>
+            </div>
+            <h3 class="text-2xl font-black text-gray-800 mb-4">Gửi tân sinh viên tương lai!</h3>
+            <p id="motivation-message" class="text-lg text-gray-600 font-medium mb-8 leading-relaxed">
+                <!-- Message will be injected here -->
             </p>
+            <button onclick="closeMotivationModal()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">
+                Nhận vía 9+ môn này! 💪
+            </button>
         </div>
-
-        <button onclick="resetApp()" class="px-8 py-3 bg-white text-pink-500 font-bold text-lg rounded-2xl shadow-md border-2 border-pink-100 hover:bg-pink-50 hover:border-pink-300 transition-all">
-            🔙 Quét lại ảnh khác
-        </button>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
 
     <script>
-        // Lưu trữ kết quả AI đoán
-        let guessedAge = 0;
-        let guessedGender = '';
+        // --- MOTIVATIONAL QUOTES ---
+        const quotes = [
+            "Thà đổ mồ hôi trên trang sách, còn hơn rơi nước mắt trên bài thi.",
+            "Ngủ muộn một chút, dậy sớm một chút, tương lai sẽ rực rỡ hơn một chút.",
+            "Không có áp lực, không có kim cương. Cố lên!",
+            "Đừng để sự lười biếng của hôm nay trở thành sự hối hận của ngày mai.",
+            "Khoảng cách giữa ước mơ và hiện thực là hành động.",
+            "Hôm nay bạn học thêm một dòng, ngày mai bạn loại được ngàn đối thủ."
+        ];
+        document.getElementById('daily-quote').innerText = quotes[Math.floor(Math.random() * quotes.length)];
 
-        // Xử lý khi chọn ảnh
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('preview-image').src = e.target.result;
-                    
-                    // Chuyển sang màn hình quét
-                    document.getElementById('step-upload').classList.add('hidden-step');
-                    document.getElementById('step-scanning').classList.remove('hidden-step');
-                    
-                    // Giả lập thời gian AI phân tích (3 giây)
-                    setTimeout(() => {
-                        finishScanning();
-                    }, 3000);
+        // --- STREAMING_CHUNK: Adding JS for Dream University... ---
+        // --- DREAM UNIVERSITY LOGIC ---
+        const savedUni = localStorage.getItem('thptqg-dream-uni');
+        const uniForm = document.getElementById('dream-uni-form');
+        const uniDisplay = document.getElementById('dream-uni-display');
+        const uniText = document.getElementById('dream-uni-text');
+        const uniInput = document.getElementById('dream-uni-input');
+
+        if (savedUni) {
+            showDreamUni(savedUni);
+        }
+
+        function saveDreamUni() {
+            const uni = uniInput.value.trim();
+            if (uni) {
+                localStorage.setItem('thptqg-dream-uni', uni);
+                showDreamUni(uni);
+                showToast('Đã ghim mục tiêu. Cố lên nhé!', 'success');
+            }
+        }
+
+        function showDreamUni(uni) {
+            uniText.innerText = uni;
+            uniForm.classList.add('hidden');
+            uniDisplay.classList.replace('hidden', 'flex');
+        }
+
+        window.editDreamUni = () => {
+            uniInput.value = localStorage.getItem('thptqg-dream-uni') || '';
+            uniDisplay.classList.replace('flex', 'hidden');
+            uniForm.classList.remove('hidden');
+        };
+
+        // --- STREAMING_CHUNK: Adding JS for Motivation Modal... ---
+        // --- MOTIVATION MODAL LOGIC ---
+        const wishes = [
+            "Đề thi năm nay sẽ trúng tủ những phần bạn đã cày nát! Tự tin lên nhé, bạn đã vất vả nhiều rồi.",
+            "Cổng trường Đại học mơ ước đang mở rộng chờ đón bạn. Chỉ một chút nữa thôi, tuyệt đối đừng bỏ cuộc!",
+            "Mọi nỗ lực học đêm khuya của bạn đều sẽ được đền đáp bằng một điểm số rực rỡ. Chúc bạn thi thật tốt!",
+            "Bình tĩnh, tự tin và tỏa sáng! Bạn mạnh mẽ và giỏi giang hơn những gì bạn nghĩ rất nhiều.",
+            "Hãy biến những tờ giấy nháp thành vũ khí, biến bút bi thành gươm sắc. Bạn là Chiến Thần cơ mà!",
+            "Gửi năng lượng may mắn 9+ tất cả các môn đến bạn! Hít một hơi thật sâu và làm bài hết sức mình nhé.",
+            "Điểm số không quyết định tất cả, nhưng nỗ lực hôm nay sẽ định hình con người bạn ngày mai. Chiến thôi!",
+            "Đừng lo lắng, hãy làm bài bằng 200% phong độ. Vũ trụ đang gửi những tín hiệu may mắn đến tờ giấy thi của bạn!"
+        ];
+
+        const modal = document.getElementById('motivation-modal');
+        const modalContent = document.getElementById('modal-content');
+        const messageEl = document.getElementById('motivation-message');
+
+        window.showMotivationModal = () => {
+            const randomWish = wishes[Math.floor(Math.random() * wishes.length)];
+            messageEl.innerText = randomWish;
+            modal.classList.remove('hidden');
+            
+            // Trigger reflow to restart animation
+            void modal.offsetWidth;
+            
+            modal.classList.remove('opacity-0');
+            modalContent.classList.replace('scale-95', 'scale-100');
+        };
+
+        window.closeMotivationModal = () => {
+            modal.classList.add('opacity-0');
+            modalContent.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300); // Matches duration-300
+        };
+
+        // --- STREAMING_CHUNK: Fixing Countdown Date Logic... ---
+        // --- COUNTDOWN LOGIC ---
+        
+        // Xóa cache cũ để cập nhật ngay ngày 11/06 mà không cần nhập lại
+        localStorage.removeItem('thptqg-exam-date');
+
+        let savedExamDate = localStorage.getItem('thptqg-exam-date');
+        let examDate;
+
+        if (savedExamDate && !isNaN(parseInt(savedExamDate))) {
+            examDate = parseInt(savedExamDate);
+        } else {
+            // Mặc định là ngày 11/06 của năm hiện tại lúc 07:00 sáng
+            const currentYear = new Date().getFullYear();
+            examDate = new Date(`${currentYear}-06-11T07:00:00`).getTime();
+            
+            // Nếu ngày này đã qua, tự động chuyển sang năm sau
+            if (examDate < new Date().getTime()) {
+                examDate = new Date(`${currentYear + 1}-06-11T07:00:00`).getTime();
+            }
+            localStorage.setItem('thptqg-exam-date', examDate);
+        }
+
+        window.editExamDate = () => {
+            // Format current examDate to YYYY-MM-DD format for prompt
+            const dateObj = new Date(examDate);
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            
+            const dateStr = prompt("Nhập ngày thi chính thức của bạn (Định dạng: YYYY-MM-DD)\nVí dụ: " + yyyy + "-06-11", `${yyyy}-${mm}-${dd}`);
+            
+            if(dateStr) {
+                const newDate = new Date(dateStr + "T07:00:00").getTime();
+                if(!isNaN(newDate)) {
+                    examDate = newDate;
+                    localStorage.setItem('thptqg-exam-date', examDate);
+                    updateCountdown();
+                    showToast('Đã cập nhật ngày thi! Cháy hết mình nhé 🔥', 'success');
+                } else {
+                    showToast('Ngày không hợp lệ. Vui lòng nhập đúng định dạng YYYY-MM-DD.', 'info');
                 }
-                reader.readAsDataURL(file);
             }
-        }
+        };
 
-        // Kết thúc quét và đưa ra kết quả ngẫu nhiên
-        function finishScanning() {
-            // Random tuổi từ 12 đến 22 để "tấu hài"
-            guessedAge = Math.floor(Math.random() * 11) + 12; 
-            // Random giới tính
-            guessedGender = Math.random() > 0.5 ? 'male' : 'female';
-            
-            document.getElementById('ai-age').innerText = guessedAge;
-            document.getElementById('ai-gender').innerText = guessedGender === 'male' ? 'Nam 👦' : 'Nữ 👧';
+        function updateCountdown() {
+            const currentTime = new Date().getTime();
+            const distance = examDate - currentTime;
 
-            document.getElementById('step-scanning').classList.add('hidden-step');
-            document.getElementById('step-result').classList.remove('hidden-step');
-            document.getElementById('step-result').classList.add('fade-in');
-        }
-
-        // Nếu người dùng ấn "Chuẩn luôn"
-        function acceptAIGuess() {
-            processAndShowWish(guessedAge, guessedGender);
-            document.getElementById('step-result').classList.add('hidden-step');
-        }
-
-        // Nếu người dùng ấn "AI sai rồi" -> Chuyển sang form nhập tay
-        function rejectAIGuess() {
-            document.getElementById('step-result').classList.add('hidden-step');
-            document.getElementById('step-manual').classList.remove('hidden-step');
-            document.getElementById('step-manual').classList.add('fade-in');
-            
-            // Điền sẵn dữ liệu AI đã đoán vào form để người dùng dễ sửa
-            document.getElementById('age').value = guessedAge;
-            if (guessedGender === 'male') {
-                document.getElementById('male').checked = true;
-            } else {
-                document.getElementById('female').checked = true;
-            }
-        }
-
-        // Tạo lời chúc từ form nhập tay
-        function generateWishFromForm() {
-            const ageInput = document.getElementById('age').value;
-            const ageError = document.getElementById('age-error');
-            
-            if (!ageInput || ageInput <= 0) {
-                ageError.classList.remove('hidden');
+            if (distance < 0) {
+                document.getElementById("days").innerText = "00";
+                document.getElementById("hours").innerText = "00";
+                document.getElementById("minutes").innerText = "00";
+                document.getElementById("seconds").innerText = "00";
                 return;
             }
-            ageError.classList.add('hidden');
 
-            const finalAge = parseInt(ageInput);
-            const finalGender = document.querySelector('input[name="gender"]:checked').value;
-            
-            document.getElementById('step-manual').classList.add('hidden-step');
-            processAndShowWish(finalAge, finalGender);
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = days.toString().padStart(2, '0');
+            document.getElementById("hours").innerText = hours.toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = minutes.toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = seconds.toString().padStart(2, '0');
         }
 
-        // Hàm xử lý logic xưng hô và hiển thị kết quả (Dùng chung cho cả 2 nhánh)
-        function processAndShowWish(age, gender) {
-            let receiver = ''; 
-            let sender = '';   
-            let baseWish = '';
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
 
-            // LOGIC XƯNG HÔ VÀ LỜI KHEN
-            if (age > 16) {
-                receiver = (gender === 'male') ? 'anh' : 'chị';
-                sender = 'em';
-                const compliments = (gender === 'male') 
-                    ? ['đẹp trai, phong độ', 'đẹp trai, ngời ngời', 'đẹp trai, ga lăng'] 
-                    : ['xinh gái, rạng rỡ', 'xinh gái, duyên dáng', 'xinh xắn, đáng yêu'];
-                const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+        // --- STREAMING_CHUNK: Implementing Pomodoro Timer logic... ---
+        // --- POMODORO LOGIC ---
+        let timerInterval;
+        let timeLeft = 25 * 60; // 25 minutes in seconds
+        let isRunning = false;
+        let currentMode = 'work'; // 'work' or 'break'
+        
+        const timeDisplay = document.getElementById('time-display');
+        const startBtn = document.getElementById('start-btn');
+        const timerContainer = document.getElementById('timer-display-container');
 
-                baseWish = `Chúc ${receiver} ngày Quốc tế Thiếu nhi 1/6 thật vui vẻ và hạnh phúc nhé! Chúc ${receiver} ngày càng ${randomCompliment} và gặt hái nhiều thành công. Dù lớn rồi nhưng tâm hồn vẫn phải luôn tươi trẻ như em bé nha. 1/6 không ai tặng quà thì có ${sender} tặng quà tinh thần nè! 🎁💖`;
-            } 
-            else if (age === 16) {
-                receiver = 'bạn';
-                sender = 'mình';
-                const compliments = (gender === 'male') 
-                    ? ['đẹp trai, cool ngầu', 'khôi ngô, tài giỏi', 'phong độ, cuốn hút'] 
-                    : ['xinh gái, kute', 'xinh gái, tỏa sáng', 'dễ thương, hiền lành'];
-                const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timeDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
 
-                baseWish = `Chúc ${receiver} mùng 1/6 tràn ngập niềm vui, lúc nào cũng vui vẻ và yêu đời nhé! Chúc ${receiver} luôn ${randomCompliment} nha. Chúc tình bạn của chúng ta luôn bền chặt và vui vẻ như những đứa trẻ! 🧸✨`;
-            } 
-            else { 
-                receiver = 'em';
-                sender = 'anh/chị'; 
-                const compliments = (gender === 'male') 
-                    ? ['đẹp trai, lanh lợi', 'đẹp trai, ga lăng', 'ngoan ngoãn, đáng yêu'] 
-                    : ['xinh xắn, đáng yêu', 'xinh xắn, như thiên thần', 'dễ thương, lém lỉnh'];
-                const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+        function setPomodoroMode(mode) {
+            if (isRunning) return; // Prevent changing mode while running
+            
+            currentMode = mode;
+            document.getElementById('btn-work').className = 'mode-btn px-3 py-1 rounded-full text-sm font-semibold transition-colors ' + (mode === 'work' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100');
+            document.getElementById('btn-break').className = 'mode-btn px-3 py-1 rounded-full text-sm font-semibold transition-colors ' + (mode === 'break' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:bg-gray-100');
+            
+            timeLeft = mode === 'work' ? 25 * 60 : 5 * 60;
+            updateTimerDisplay();
+        }
 
-                baseWish = `Chúc ${receiver} cưng ngày Quốc tế Thiếu nhi thật nhiều niềm vui! Chúc ${receiver} ăn no chóng lớn, ngoan ngoãn, học thật giỏi và ngày càng ${randomCompliment} nhé! Nhanh đi đòi bố mẹ thật nhiều quà nha! 🎉🎈`;
+        function toggleTimer() {
+            if (isRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                startBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Tiếp tục';
+                startBtn.classList.replace('bg-orange-500', 'bg-indigo-600');
+                startBtn.classList.replace('hover:bg-orange-600', 'hover:bg-indigo-700');
+                timerContainer.classList.remove('timer-running');
+            } else {
+                // Start
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        timerContainer.classList.remove('timer-running');
+                        startBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Bắt đầu';
+                        
+                        // Play sound or show toast
+                        showToast(currentMode === 'work' ? 'Hết giờ học! Hãy nghỉ ngơi 5 phút nhé.' : 'Hết giờ nghỉ! Quay lại chiến đấu thôi.', 'success');
+                        
+                        // Auto switch mode
+                        setPomodoroMode(currentMode === 'work' ? 'break' : 'work');
+                    }
+                }, 1000);
+                startBtn.innerHTML = '<i class="fa-solid fa-pause mr-2"></i> Tạm dừng';
+                startBtn.classList.replace('bg-indigo-600', 'bg-orange-500');
+                startBtn.classList.replace('hover:bg-indigo-700', 'hover:bg-orange-600');
+                timerContainer.classList.add('timer-running');
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            setPomodoroMode(currentMode);
+            startBtn.innerHTML = '<i class="fa-solid fa-play mr-2"></i> Bắt đầu';
+            startBtn.classList.replace('bg-orange-500', 'bg-indigo-600');
+            startBtn.classList.replace('hover:bg-orange-600', 'hover:bg-indigo-700');
+            timerContainer.classList.remove('timer-running');
+        }
+
+        // --- STREAMING_CHUNK: Implementing Study Planner / To-Do List logic with LocalStorage... ---
+        // --- TASK MANAGER LOGIC ---
+        let tasks = JSON.parse(localStorage.getItem('thptqg-tasks')) || [];
+        const taskForm = document.getElementById('task-form');
+        const taskInput = document.getElementById('task-input');
+        const taskList = document.getElementById('task-list');
+        const taskStats = document.getElementById('task-stats');
+
+        function saveTasks() {
+            localStorage.setItem('thptqg-tasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            let completedCount = 0;
+
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<li class="text-center text-gray-400 py-4 text-sm italic">Chưa có kế hoạch nào. Thêm ngay phía trên nhé!</li>';
             }
 
-            if (age === 18) {
-                baseWish += `\n\n🎓 Đặc biệt năm nay ${receiver} đã 18 tuổi rồi! ${sender.charAt(0).toUpperCase() + sender.slice(1)} chúc ${receiver} ôn thi thật tốt, giữ tinh thần thoải mái, tự tin chiến thắng và đạt điểm cao chót vót trong kỳ thi Tốt nghiệp THPT Quốc gia sắp tới nhé! Cánh cửa Đại học đang vẫy gọi, cố lênnn!!! 🌟📚💪`;
-            }
-
-            document.getElementById('greeting-title').innerText = `Gửi tặng ${receiver} yêu quý!`;
-            document.getElementById('greeting-content').innerText = baseWish;
-
-            const stepWish = document.getElementById('step-wish');
-            stepWish.classList.remove('hidden-step');
-            stepWish.classList.add('fade-in');
-
-            startConfetti();
-        }
-
-        function resetApp() {
-            document.getElementById('step-wish').classList.add('hidden-step');
-            document.getElementById('step-wish').classList.remove('fade-in');
-            
-            // Quay về màn hình upload ban đầu
-            document.getElementById('step-upload').classList.remove('hidden-step');
-            document.getElementById('dropzone-file').value = ''; 
-            
-            stopConfetti();
-        }
-
-        let confettiPlayers = [];
-        let canvas = document.getElementById('confetti');
-        let ctx = canvas.getContext('2d');
-        let animationId;
-
-        function startConfetti() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            confettiPlayers = [];
-            for (let i = 0; i < 150; i++) {
-                confettiPlayers.push(createConfetti());
-            }
-            renderConfetti();
-        }
-
-        function stopConfetti() {
-            cancelAnimationFrame(animationId);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function createConfetti() {
-            const colors = ['#ff718d', '#fdff6a', '#71b7ff', '#6cff9e', '#b871ff'];
-            return {
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 10 + 5,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                speed: Math.random() * 3 + 2,
-                angle: Math.random() * 360,
-                spin: Math.random() * 0.2 - 0.1,
-                fallRate: Math.random() * 0.1 + 0.05
-            };
-        }
-
-        function renderConfetti() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            confettiPlayers.forEach(p => {
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.angle);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-                ctx.restore();
-
-                p.y += p.speed;
-                p.x += Math.sin(p.angle) * 2;
-                p.angle += p.spin;
-
-                // Reset hạt pháo khi rơi khỏi màn hình
-                if (p.y > canvas.height) {
-                    p.y = -20;
-                    p.x = Math.random() * canvas.width;
-                }
+            tasks.forEach((task, index) => {
+                if(task.completed) completedCount++;
+                
+                const li = document.createElement('li');
+                li.className = `flex items-center justify-between p-3 rounded-xl border ${task.completed ? 'bg-gray-50 border-gray-100' : 'bg-white border-gray-200 shadow-sm'} transition-all`;
+                
+                li.innerHTML = `
+                    <label class="flex items-center gap-3 cursor-pointer flex-1">
+                        <input type="checkbox" class="task-checkbox w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer" 
+                               ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTask(${index})">
+                        <div class="font-medium ${task.completed ? 'text-gray-400 line-through' : 'text-gray-700'} transition-all">${task.text}</div>
+                    </label>
+                    <button onclick="deleteTask(${index})" class="text-gray-300 hover:text-red-500 p-2 transition-colors focus:outline-none">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                taskList.appendChild(li);
             });
-            animationId = requestAnimationFrame(renderConfetti);
+
+            taskStats.innerText = `Hoàn thành: ${completedCount}/${tasks.length}`;
         }
 
-        // Cập nhật kích thước canvas khi resize cửa sổ
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = taskInput.value.trim();
+            if (text) {
+                tasks.push({ text, completed: false });
+                taskInput.value = '';
+                saveTasks();
+                showToast('Đã thêm mục tiêu mới!', 'info');
+            }
         });
+
+        window.toggleTask = (index) => {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            if(tasks[index].completed) {
+                // Optional: add a small confetti or sound effect here
+            }
+        };
+
+        window.deleteTask = (index) => {
+            tasks.splice(index, 1);
+            saveTasks();
+        };
+
+        window.clearCompletedTasks = () => {
+            const initialLength = tasks.length;
+            tasks = tasks.filter(task => !task.completed);
+            if (tasks.length < initialLength) {
+                saveTasks();
+                showToast('Đã dọn dẹp các mục hoàn thành.', 'info');
+            }
+        };
+
+        // --- STREAMING_CHUNK: Implementing Toast Notification system... ---
+        // --- CUSTOM TOAST NOTIFICATION (Alternative to alert) ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast show';
+            
+            let icon = type === 'success' ? '<i class="fa-solid fa-circle-check text-green-500 text-xl"></i>' : 
+                       '<i class="fa-solid fa-bell text-blue-500 text-xl"></i>';
+                       
+            if(type === 'success') toast.style.borderLeftColor = '#10b981';
+            if(type === 'info') toast.style.borderLeftColor = '#3b82f6';
+
+            toast.innerHTML = `
+                ${icon}
+                <span class="text-gray-700 font-medium text-sm">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if(container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300); // Wait for transition to finish
+            }, 3000);
+        }
+
+        // Initialize application
+        renderTasks();
+
     </script>
 </body>
 </html>
